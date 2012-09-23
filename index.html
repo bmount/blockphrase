@@ -41,23 +41,28 @@ function flood (px, w0, x0, y0, ov, nv) {
   console.log(px[y0*w0 + x0]);
   var stk = [[x0, y0]]
     , c, x, y;
+  var maxes = [x0, y0];
+  var mins = [x0, y0];
   while (stk.length) {
     c = stk.pop();
-    //console.log(c[0]);
     x = c[0];
     y = c[1];
     if (px[(y*w0 + x)*4] != ov) { 
-      //console.log(px[y*w0 + x], stk.length);
-      //return;
       continue;
     } else {
       px[(y*w0 + x)*4] = nv;
+      if (x > maxes[0]) { maxes[0]=x }
+      if (y > maxes[1]) { maxes[1]=y }
+      if (x < mins[0])  { mins[0]=x }
+      if (y < mins[1])  { mins[1]=y }
       stk.push([x, y-1]);
       stk.push([x, y+1]);
       stk.push([x+1, y]);
       stk.push([x-1, y]);
     }
   }
+
+  return [maxes, mins]
 }
 
 var canvas = d3.select("#map"),
@@ -91,15 +96,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
 var redIncr = 0;
 d3.select("#map").on("click", function (evt, a, b, c) {
-    redIncr += 10;
+    redIncr++;
     var x = d3.event.offsetX //.clientX
       , y = d3.event.offsetY //.clientY;
-    //console.log(d3.event);
+    console.log(d3.event);
     var oc = context.getImageData(x, y, 1, 1); 
     console.log(oc);
     oc = (oc.data[0]);
     var px = context.getImageData(0,0, context.canvas.height, context.canvas.width);
-    flood(px.data, px.width, x, y, oc, redIncr);
+    var extent = flood(px.data, px.width, x, y, oc, redIncr);
+    console.log(extent);
+    context.putImageData(px, 0, 0);
+  })
 
     /*
     if (flood(px.data, px.width, x, y, 255, 0)) {
@@ -110,14 +118,11 @@ d3.select("#map").on("click", function (evt, a, b, c) {
     } 
     */
 
-    context.putImageData(px, 0, 0);
-  })
-
 </script>
 
 <div id="copy">
       &copy;
-      <a href="http://www.cloudmade.com/">Map data from </a>,
+      Map data from
       <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors
       <a href="http://creativecommons.org/licenses/by-sa/2.0/">CCBYSA</a> and
       <a href="http://stamen.com">Stamen Design</a>
