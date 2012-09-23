@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="lib/pixymaps.min.js"></script>
+    <script type="text/javascript" src="lib/d3.v2.min.js"></script>
+    <style type="text/css">
+
+body {
+  font: 10px sans-serif;
+}
+
+#container {
+  width: 400px;
+  height: 400px;
+  overflow: hidden;
+}
+
+</style>
+  </head>
+  <body>
+    <div id=container>
+      <canvas id=map></canvas>
+    </div>
+    <script type="text/javascript">
+
+function bucketEdges (ctx) {
+  var px = ctx.getImageData(0,0, ctx.canvas.height, ctx.canvas.width);
+  var edges = [0,1,0,1], idx;
+  for (var k = 0; k < px.height; k++) {
+    for (var i = 0; i < px.width; i++) {
+      idx = (k * px.width + i) * 4
+      //console.log(px.data[i*k*9]);
+      if (px.data[idx] > 199) px.data[idx] = 2;
+      else { px.data[idx] = 200; }
+    }
+  }
+  ctx.putImageData(px, 0, 0)
+}
+
+function flood (px, w0, x0, y0, ov, nv) {
+  console.log(px[y0*w0 + x0]);
+  var stk = [[x0, y0]]
+    , c, x, y;
+  while (stk.length) {
+    c = stk.pop();
+    //console.log(c[0]);
+    x = c[0];
+    y = c[1];
+    if (px[(y*w0 + x)*4] != ov) { 
+      //console.log(px[y*w0 + x], stk.length);
+      //return;
+      continue;
+    } else {
+      px[(y*w0 + x)*4] = nv;
+      stk.push([x, y-1]);
+      stk.push([x, y+1]);
+      stk.push([x+1, y]);
+      stk.push([x-1, y]);
+    }
+  }
+}
+
+var canvas = d3.select("#map"),
+    context = canvas.node().getContext("2d");
+
+var w = 400,
+    h = 400,
+    lon = -122.41948,
+    lat = 37.76487;
+
+var project = d3.geo.mercator()
+    .scale(1)
+    .translate([.5, .5]);
+
+var view = pixymaps.view()
+    .size([w, h])
+    .center(project([lon, lat]))
+    .zoom(15);
+
+var image = pixymaps.image()
+    .view(view)
+  .url(pixymaps.url("/devtiles/{Z}-{X}-{Y}.png"))
+  // for stamen tiles:
+  //.url(pixymaps.url("/toner-background/{Z}/{X}/{Y}.png"))
+    .render(canvas.node());
+
+document.addEventListener("DOMContentLoaded", function () {
+  bucketEdges(context);
+})
+
+
+var redIncr = 0;
+d3.select("#map").on("click", function (evt, a, b, c) {
+    redIncr += 10;
+    var x = d3.event.offsetX //.clientX
+      , y = d3.event.offsetY //.clientY;
+    //console.log(d3.event);
+    var oc = context.getImageData(x, y, 1, 1); 
+    console.log(oc);
+    oc = (oc.data[0]);
+    var px = context.getImageData(0,0, context.canvas.height, context.canvas.width);
+    flood(px.data, px.width, x, y, oc, redIncr);
+
+    /*
+    if (flood(px.data, px.width, x, y, 255, 0)) {
+      context.beginPath()
+      context.arc(x, y, 10, 0, Math.PI*2, true);
+      context.closePath()
+      context.fill()
+    } 
+    */
+
+    context.putImageData(px, 0, 0);
+  })
+
+</script>
+
+<div id="copy">
+      &copy;
+      <a href="http://www.cloudmade.com/">Map data from </a>,
+      <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors
+      <a href="http://creativecommons.org/licenses/by-sa/2.0/">CCBYSA</a> and
+      <a href="http://stamen.com">Stamen Design</a>
+    </div>
+  </body>
+</html>
