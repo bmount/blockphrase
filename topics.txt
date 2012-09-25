@@ -1,6 +1,0 @@
-flood fill
-
-idea:
-  1) flood fill white stamen tile with color A0-AN unless black/grey
-  2) each distinct color is a block
-  3) spin out from center
