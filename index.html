@@ -23,19 +23,6 @@ body {
     </div>
     <script type="text/javascript">
 
-function bucketEdges (ctx) {
-  var px = ctx.getImageData(0,0, ctx.canvas.height, ctx.canvas.width);
-  var edges = [0,1,0,1], idx;
-  for (var k = 0; k < px.height; k++) {
-    for (var i = 0; i < px.width; i++) {
-      idx = (k * px.width + i) * 4
-      if (px.data[idx] > 199) px.data[idx] = 2;
-      else { px.data[idx] = 200; }
-    }
-  }
-  ctx.putImageData(px, 0, 0)
-}
-
 function flood (px, w0, x0, y0, ov, nv, xf, yf, rewrite) {
   var stk = [[x0, y0]]
     , c, x, y;
@@ -67,17 +54,17 @@ function flood (px, w0, x0, y0, ov, nv, xf, yf, rewrite) {
       stk.push([x-1, y]);
     }
   }
-
   return [mins, maxes]
 }
 
+function pxMap (lon, lat) {
 var canvas = d3.select("#map"),
     context = canvas.node().getContext("2d");
 
 var w = 400,
     h = 400,
-    lon = -122.41948,
-    lat = 37.76487;
+    lon = lon || -122.41948,
+    lat = lat || 37.76487;
 
 var project = d3.geo.mercator()
     .scale(1)
@@ -87,31 +74,27 @@ var view = pixymaps.view()
     .size([w, h])
     .center(project([lon, lat]))
     .zoom(15);
-
 var image = pixymaps.image()
     .view(view)
-  .url(pixymaps.url("/devtiles/{Z}-{X}-{Y}.png"))
+  //.url(pixymaps.url("/devtiles/{Z}-{X}-{Y}.png"))
   // for stamen tiles via proxy for getImageData work-around:
-  //.url(pixymaps.url("/toner-background/{Z}/{X}/{Y}.png"))
-    .render(canvas.node());
-
-document.addEventListener("DOMContentLoaded", function () {
-  //bucketEdges(context);
-})
-
+    .url(pixymaps.url("/toner-background/{Z}/{X}/{Y}.png"))
+    .render(canvas.node(), function () { centralPark() });
 
 var redness = 0;
 var blockShapes = [];
-d3.select("#map").on("click", function (evt, a, b, c) {
+//d3.select("#map").on("click", function (evt, a, b, c) {
+function floodcheck (x, y) {
     redness++;
     var borderw = 3; // min space between blocks when rendered
-    var x = d3.event.offsetX //.clientX
-      , y = d3.event.offsetY //.clientY;
-    var oc = context.getImageData(x, y, 1, 1); 
-    oc = (oc.data[0]);
+    //var x = d3.event.offsetX //.clientX
+    //  , y = d3.event.offsetY //.clientY;
+    var oc = 255; //context.getImageData(x, y, 1, 1); 
+    //oc = (oc.data[0]);
     var px = context.getImageData(0,0, context.canvas.height, context.canvas.width);
     var extent = flood(px.data, px.width, x, y, oc, 
-      redness, context.canvas.width, context.canvas.height, false);
+        10, context.canvas.width, context.canvas.height, false);
+    //console.log('extent', extent);
     if (!extent) return false;
     /**/
     var csl = document.createElement("canvas");
@@ -127,14 +110,15 @@ d3.select("#map").on("click", function (evt, a, b, c) {
     var cslImg = cctx.getImageData(0,0,csl.width, csl.height);
     var robj = {w: parseInt(csl.width), h: parseInt(csl.height), yoff: extent[0][1], 
       data: cslImg.data, xoff: extent[0][0]}
-    var cslextent = flood(px.data, px.width, x, y, redness, 
-      redness+1, context.canvas.width, context.canvas.height,
+    var cslextent = flood(px.data, px.width, x, y, 10, 
+      2, context.canvas.width, context.canvas.height,
       robj);
     cctx.putImageData(cslImg, 0, 0);
     document.body.appendChild(csl);
     /**/
     context.putImageData(px, 0, 0);
-  })
+    return extent;
+}
 
     /*
     if (flood(px.data, px.width, x, y, 255, 0)) {
@@ -144,6 +128,33 @@ d3.select("#map").on("click", function (evt, a, b, c) {
       context.fill()
     } 
     */
+
+function renderArea () {
+  var x = 200
+    , y = 200
+    , nxt = false
+    , dx, dy;
+  for (var i = -100; i < 100; i+=10) {
+    for (var j = -100; j < 100; j+=10) {
+      x = 200 + i -
+        parseInt(canvas.node().style.webkitTransform.split(',')[12]);
+      y = 200 + j - 
+        parseInt(canvas.node().style.webkitTransform.split(',')[13]);
+      //console.log(x, y);
+      //console.log('canvas', canvas);
+      if (context.getImageData(x, y, 1, 1).data[0] < 100) continue;
+      nxt = floodcheck(parseInt(x), parseInt(y));
+      dx = Math.abs(nxt[0][1] - nxt[0][0]);
+      dy = Math.abs(nxt[1][1] - nxt[1][0]);
+    }
+  }
+  // couple of oddballs not sure why ->
+  d3.selectAll('canvas[width="3"]').remove()
+}
+return renderArea
+}
+
+var centralPark = pxMap(-73.98 , 40.78);
 
 </script>
 
@@ -156,3 +167,4 @@ d3.select("#map").on("click", function (evt, a, b, c) {
     </div>
   </body>
 </html>
+
