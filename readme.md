@@ -8,8 +8,8 @@ It'll hopefully result in a simple visual phrase for given city blocks, showing 
 of spaces created by street layout.
 
 The repo has some development tiles from Stamen (toner-background) checked in. Otherwise the canvas 
-`getImageData` has some kind of same origin policy, so you probably need something like `server.js`
-for remote tile providers.
+`getImageData` has some kind of same origin policy, `server.js` is mostly for proxying
+remote tile providers.
 
 Right now it's interactive which is not the intended final behavior, click on blocks to render them.
 
