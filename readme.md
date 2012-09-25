@@ -4,7 +4,7 @@ simple thing combining a sort of sparkline with some visual concepts from
 Armelle Caron's beautiful [tout bien rangé](http://www.armellecaron.fr/art/index.php?page=plans_de_berlin)
 project.
 
-It'll hopefully result in a simple visual vocabulary for city blocks, showing the form
+It'll hopefully result in a simple visual phrase for given city blocks, showing the form
 of spaces created by street layout.
 
 The repo has some development tiles from Stamen (toner-background) checked in. Otherwise the canvas 
