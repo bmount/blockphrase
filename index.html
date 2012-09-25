@@ -29,7 +29,6 @@ function bucketEdges (ctx) {
   for (var k = 0; k < px.height; k++) {
     for (var i = 0; i < px.width; i++) {
       idx = (k * px.width + i) * 4
-      //console.log(px.data[i*k*9]);
       if (px.data[idx] > 199) px.data[idx] = 2;
       else { px.data[idx] = 200; }
     }
@@ -38,8 +37,6 @@ function bucketEdges (ctx) {
 }
 
 function flood (px, w0, x0, y0, ov, nv, xf, yf, rewrite) {
-  console.log(rewrite);
-  console.log(px[y0*w0 + x0]);
   var stk = [[x0, y0]]
     , c, x, y;
   var maxes = [x0, y0];
@@ -54,16 +51,16 @@ function flood (px, w0, x0, y0, ov, nv, xf, yf, rewrite) {
     else {
       px[(y*w0 + x)*4] = nv;
       if (rewrite) { 
-        rewrite.data[((y-rewrite.yoff)*rewrite.w + x-rewrite.xoff)*4] = 200; 
+        rewrite.data[((y-rewrite.yoff)*rewrite.w + x - rewrite.xoff)*4] = 0;
       }
       if (x > maxes[0]) { maxes[0]=x }
       if (y > maxes[1]) { maxes[1]=y }
       if (x < mins[0])  { mins[0]=x }
       if (y < mins[1])  { mins[1]=y }
-      if (x <= 0) return false;
-      if (y <= 0) return false;
-      if (x >= xf) return false;
-      if (x >= yf) return false;
+      //if (x <= 0) return false;
+      //if (y <= 0) return false;
+      //if (x >= xf) return false;
+      //if (x >= yf) return false;
       stk.push([x, y-1]);
       stk.push([x, y+1]);
       stk.push([x+1, y]);
@@ -94,7 +91,7 @@ var view = pixymaps.view()
 var image = pixymaps.image()
     .view(view)
   .url(pixymaps.url("/devtiles/{Z}-{X}-{Y}.png"))
-  // for stamen tiles:
+  // for stamen tiles via proxy for getImageData work-around:
   //.url(pixymaps.url("/toner-background/{Z}/{X}/{Y}.png"))
     .render(canvas.node());
 
@@ -107,31 +104,33 @@ var redness = 0;
 var blockShapes = [];
 d3.select("#map").on("click", function (evt, a, b, c) {
     redness++;
+    var bord = 3; // min space between blocks when rendered
     var x = d3.event.offsetX //.clientX
       , y = d3.event.offsetY //.clientY;
-    console.log(d3.event);
     var oc = context.getImageData(x, y, 1, 1); 
-    console.log(oc);
     oc = (oc.data[0]);
     var px = context.getImageData(0,0, context.canvas.height, context.canvas.width);
     var extent = flood(px.data, px.width, x, y, oc, 
       redness, context.canvas.width, context.canvas.height, false);
-    console.log(extent);
     if (!extent) return false;
     /**/
     var csl = document.createElement("canvas");
     csl.setAttribute("id", extent.toString());
-    csl.width = extent[1][0] - extent[0][0];
-    csl.height = extent[1][1] - extent[0][1];
+    csl.width = extent[1][0] - extent[0][0] + bord;
+    csl.height = extent[1][1] - extent[0][1] + bord;
+    //csl.width = 900;
+    //csl.height = 900;
     cctx = csl.getContext('2d');
+    cctx.fillStyle = 'rgba(255,255,255,1)';
+    cctx.fillRect(0,0,csl.width,csl.height);
+    cctx.fill();
     var cslImg = cctx.getImageData(0,0,csl.width, csl.height);
-    var robj = {w: csl.width, h: csl.height, yoff: extent[0][1], 
+    var robj = {w: parseInt(csl.width), h: parseInt(csl.height), yoff: extent[0][1], 
       data: cslImg.data, xoff: extent[0][0]}
     var cslextent = flood(px.data, px.width, x, y, redness, 
       redness+1, context.canvas.width, context.canvas.height,
       robj);
     cctx.putImageData(cslImg, 0, 0);
-    console.log(robj);
     document.body.appendChild(csl);
     /**/
     context.putImageData(px, 0, 0);
