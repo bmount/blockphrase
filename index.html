@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+  <meta charset="utf-8">
   <head>
     <script type="text/javascript" src="../lib/polymaps-cmu.min.js"></script>
     <script type="text/javascript" src="../lib/pixymaps.min.js"></script>
@@ -19,8 +20,9 @@ body {
 }
 
 .dlcanvas {
-  /*
   display: none;
+  /* position: absolute;
+  top: -2000px;
   */
 }
 
@@ -79,15 +81,17 @@ body {
     </div>
     <div id="copy">
       Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a> |
-      <a href="http://www.armellecaron.fr/cms/index.php?page=plans_de_berlin">idea</a> |
-      <a href="https://github.com/bvmou/blockphrase">source</a>
+      ideas: <a href="http://www.armellecaron.fr/cms/index.php?page=plans_de_berlin">[1]</a> 
+      <a href="http://www.edwardtufte.com/bboard/q-and-a-fetch-msg?msg_id=0001OR">[2]</a> 
+      <a href="http://commonscale.tumblr.com/post/29710181343/they-dont-make-them-like-they-used-to">[3]</a> 
+      | <a href="https://github.com/bvmou/blockphrase">source</a>
     </div>
 
     <div id=description>
       
       <button id=renderbutton>Render</button>
-      <button disabled id=savebutton >save</button>
-      <button disabled id=restorebutton>back to map</button>
+      <button disabled download=blocklines id=savebutton >save</button>
+      <button disabled id=restorebutton>clear</button>
     </div>
   <div id=blockphrase></div>
 
@@ -208,7 +212,7 @@ function renderArea () {
   var x = 200
     , y = 200
     , nxt = false
-    , offx = 0, offy = 0
+    , offx = 0, offy = 0, rv = []
     , cv = canvas.node();
   if (typeof cv.style.webkitTransform === 'string') {
     offx = parseInt(cv.style.webkitTransform.split(',')[12]);
@@ -220,35 +224,42 @@ function renderArea () {
       y = 200 + j - offy
       if (context.getImageData(x, y, 1, 1).data[0] < 100) continue;
       nxt = floodcheck(parseInt(x), parseInt(y));
+      rv.push(nxt[0]);
       blocks.appendChild(nxt[0]);
     }
   }
   // couple of oddballs ->
-  d3.selectAll('canvas[width="3"]').remove()
+  d3.selectAll('canvas[width="3"]').remove();
+  d3.select("#savebutton").node().disabled = false;
+  collectCanvas();
 }
 }
 
 d3.select("#renderbutton").on('click', function () {
     var ctr = findermap.center()
     pxMap(ctr.lon, ctr.lat);
-    d3.select("#savebutton").node().disabled = false;
-    //d3.select("#restorebutton").node().disabled = false;
+    d3.select("#restorebutton").node().disabled = false;
   })
 
 
 d3.select("#restorebutton").on('click', function () {
-    //d3.select("#savebutton").node().disabled = true;
-    //this.disabled = true;
-    //d3.selectAll(".blocks").remove();
-    })
+    d3.select("#savebutton").node().disabled = true;
+    this.disabled = true;
+    d3.selectAll(".blocks").remove();
+})
+
 
 d3.select("#savebutton").on('click', function () {
-    var blockcanvases = d3.selectAll(".blocks")
-      , blockcanvas;
+    var saveimage = collectCanvas().toDataURL("image/png");
+    window.location=saveimage;
+});
+    
+function collectCanvas (canvases) {
+    var blockcanvases = canvases || d3.selectAll("#blockphrase canvas")
+    , blockcanvas;
     console.log(blockcanvases);
     var widthTot = 0;
     var heightMax = 0;
-    //blockcanvases[0].forEach(function (e, i, c) {
     for (var i = 0; i < blockcanvases[0].length; i++) {
       blockcanvas = blockcanvases[0][i];
       widthTot += blockcanvas.width;
@@ -256,6 +267,7 @@ d3.select("#savebutton").on('click', function () {
     }
     var dlcanvas = document.createElement("canvas");
     dlcanvas.setAttribute("class", "dlcanvas");
+    dlcanvas.setAttribute("id", "dlcanvas");
     dlcanvas.setAttribute("height", heightMax + 5);
     dlcanvas.setAttribute("width", widthTot);
     dlctx = dlcanvas.getContext('2d');
@@ -265,17 +277,16 @@ d3.select("#savebutton").on('click', function () {
     var xpos = 0, imgdata, datapng;
     for (var i = 0; i < blockcanvases[0].length; i++) {
       blockcanvas = blockcanvases[0][i];
+      datapng = document.createElement("img"); // new Image sync behavior dont understand
+      datapng.setAttribute("id", 'blocklines');
       imgdata = blockcanvas.toDataURL('image/png');
-      console.log(imgdata);
-      datapng = new Image();
       datapng.src = imgdata;
       dlctx.drawImage(datapng, xpos, heightMax-blockcanvas.height);
       xpos += blockcanvas.width;
     }
-    window.location.href = dlcanvas.toDataURL('image/png');
     document.body.appendChild(dlcanvas);
-    console.log(widthTot, heightMax);
-})
+    return dlcanvas;
+}
 
 
 </script>
