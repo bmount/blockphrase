@@ -1,35 +1,83 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <script type="text/javascript" src="lib/polymaps-cmu.min.js"></script>
     <script type="text/javascript" src="lib/pixymaps.min.js"></script>
     <script type="text/javascript" src="lib/d3.v2.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/postyle.css" >
     <style type="text/css">
 
 body {
   font: 10px sans-serif;
 }
 
-#container {
+#rendercontainer {
   width: 400px;
   height: 400px;
   overflow: hidden;
+  display: none;
+}
+
+#copy {
+  position: absolute;
+  top: 430px;
+  left: 2em;
+}
+
+#findercontainer {
+  width: 600px;
+  height: 400px;
+  overflow: hidden;
+  position: absolute;
+  top: 20px;
+  left: 2em;
+}
+
+#description {
+  font-size: 30px;
+  right: 0px;
+  top: 0px;
+  position: absolute;
+}
+
+#blockphrase {
+  position: absolute;
+  top: 448px;
+}
+
+.hidden {
+  display: none;
 }
 
 </style>
   </head>
   <body>
-    <div id=container>
+    <div id=rendercontainer>
       <canvas id=map></canvas>
     </div>
-    <script type="text/javascript">
+    <div id=findercontainer>
+       
+      <div id=findermap> </div>
+    </div>
+    <div id="copy">
+    Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.
+    </div>
 
-function flood (px, w0, x0, y0, ov, nv, xf, yf, rewrite) {
-  var stk = [[x0, y0]]
+    <div id=description>
+      
+      <button id=renderbutton>Render</button>
+    </div>
+  <div id=blockphrase></div>
+
+<script type="text/javascript">
+
+function flood (px, w0, x0, y0, ov, nv, xf, yf, cp) {
+  var stack = [[x0, y0]]
     , c, x, y;
   var maxes = [x0, y0];
   var mins = [x0, y0];
-  while (stk.length) {
-    c = stk.pop();
+  while (stack.length) {
+    c = stack.pop();
     x = c[0];
     y = c[1];
     if (px[(y*w0 + x)*4] != ov) { 
@@ -37,8 +85,8 @@ function flood (px, w0, x0, y0, ov, nv, xf, yf, rewrite) {
     }
     else {
       px[(y*w0 + x)*4] = nv;
-      if (rewrite) { 
-        rewrite.data[((y-rewrite.yoff)*rewrite.w + x - rewrite.xoff)*4] = 0;
+      if (cp) { 
+        cp.data[((y-cp.yoff)*cp.w + x - cp.xoff)*4] = 0;
       }
       if (x > maxes[0]) { maxes[0]=x }
       if (y > maxes[1]) { maxes[1]=y }
@@ -48,14 +96,28 @@ function flood (px, w0, x0, y0, ov, nv, xf, yf, rewrite) {
       //if (y <= 0) return false;
       //if (x >= xf) return false;
       //if (x >= yf) return false;
-      stk.push([x, y-1]);
-      stk.push([x, y+1]);
-      stk.push([x+1, y]);
-      stk.push([x-1, y]);
+      stack.push([x, y-1]);
+      stack.push([x, y+1]);
+      stack.push([x+1, y]);
+      stack.push([x-1, y]);
     }
   }
   return [mins, maxes]
 }
+
+var po = org.polymaps;
+
+var findermap = po.map()
+    .container(document.getElementById("findermap").appendChild(po.svg("svg")))
+    .zoomRange([3, 16])
+    .add(po.interact())
+    .add(po.hash());
+
+findermap.add(po.image()
+    .url(po.url("http://tile.stamen.com/toner/{Z}/{X}/{Y}.png")));
+
+findermap.add(po.compass()
+    .pan("none"));
 
 function pxMap (lon, lat) {
 var canvas = d3.select("#map"),
@@ -76,21 +138,15 @@ var view = pixymaps.view()
     .zoom(15);
 var image = pixymaps.image()
     .view(view)
+  // for local dev tiles:
   //.url(pixymaps.url("/devtiles/{Z}-{X}-{Y}.png"))
   // for stamen tiles via proxy for getImageData work-around:
     .url(pixymaps.url("/toner-background/{Z}/{X}/{Y}.png"))
-    .render(canvas.node(), function () { centralPark() });
+    .render(canvas.node(), renderArea);
 
-var redness = 0;
-var blockShapes = [];
-//d3.select("#map").on("click", function (evt, a, b, c) {
 function floodcheck (x, y) {
-    redness++;
     var borderw = 3; // min space between blocks when rendered
-    //var x = d3.event.offsetX //.clientX
-    //  , y = d3.event.offsetY //.clientY;
     var oc = 255; //context.getImageData(x, y, 1, 1); 
-    //oc = (oc.data[0]);
     var px = context.getImageData(0,0, context.canvas.height, context.canvas.width);
     var extent = flood(px.data, px.width, x, y, oc, 
         10, context.canvas.width, context.canvas.height, false);
@@ -114,36 +170,28 @@ function floodcheck (x, y) {
       2, context.canvas.width, context.canvas.height,
       robj);
     cctx.putImageData(cslImg, 0, 0);
-    document.body.appendChild(csl);
+    //csl.setAttribute('class', 'blockphrase');
+    //document.body.appendChild(csl);
     /**/
     context.putImageData(px, 0, 0);
-    return extent;
+    return [csl, extent];
 }
 
-    /*
-    if (flood(px.data, px.width, x, y, 255, 0)) {
-      context.beginPath()
-      context.arc(x, y, 10, 0, Math.PI*2, true);
-      context.closePath()
-      context.fill()
-    } 
-    */
-
 function renderArea () {
+  var blocks = d3.select('#blockphrase').node()
   var x = 200
     , y = 200
     , nxt = false
     , dx, dy;
-  for (var i = -100; i < 100; i+=10) {
-    for (var j = -100; j < 100; j+=10) {
+  for (var i = -75; i <= 75; i+=15) {
+    for (var j = -75; j <= 75; j+=15) {
       x = 200 + i -
         parseInt(canvas.node().style.webkitTransform.split(',')[12]);
       y = 200 + j - 
         parseInt(canvas.node().style.webkitTransform.split(',')[13]);
-      //console.log(x, y);
-      //console.log('canvas', canvas);
       if (context.getImageData(x, y, 1, 1).data[0] < 100) continue;
       nxt = floodcheck(parseInt(x), parseInt(y));
+      blocks.appendChild(nxt[0]);
       dx = Math.abs(nxt[0][1] - nxt[0][0]);
       dy = Math.abs(nxt[1][1] - nxt[1][0]);
     }
@@ -151,20 +199,17 @@ function renderArea () {
   // couple of oddballs not sure why ->
   d3.selectAll('canvas[width="3"]').remove()
 }
-return renderArea
 }
 
-var centralPark = pxMap(-73.98 , 40.78);
+
+d3.select("#renderbutton").on('click', function () {
+    var ctr = findermap.center()
+    pxMap(ctr.lon, ctr.lat);
+  })
+
 
 </script>
 
-<div id="copy">
-      &copy;
-      Map data from
-      <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors
-      <a href="http://creativecommons.org/licenses/by-sa/2.0/">CCBYSA</a> and
-      <a href="http://stamen.com">Stamen Design</a>
-    </div>
   </body>
 </html>
 

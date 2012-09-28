@@ -17,6 +17,7 @@ app.route('/' + tileset + '/*', function (req, resp) {
 app.route('/').files(path.join(__dirname, 'index.html'));
 
 app.route('/lib/*').files(path.join(__dirname, 'lib'));
+app.route('/style/*').files(path.join(__dirname, 'style'));
 
 app.route('devtiles/*').files(path.join(__dirname, 'localtilecache'));
 

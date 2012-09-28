@@ -11,6 +11,6 @@ The repo has some development tiles from Stamen (toner-background) checked in. O
 `getImageData` has some kind of same origin policy, `server.js` is mostly for proxying
 remote tile providers.
 
-Right now it's interactive which is not the intended final behavior, click on blocks to render them.
+To use:
 
 `node server.js // http://localhost:8002`
