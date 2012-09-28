@@ -35,7 +35,7 @@ body {
 
 #description {
   font-size: 30px;
-  right: 0px;
+  right: 625px;
   top: 0px;
   position: absolute;
 }
@@ -150,15 +150,11 @@ function floodcheck (x, y) {
     var px = context.getImageData(0,0, context.canvas.height, context.canvas.width);
     var extent = flood(px.data, px.width, x, y, oc, 
         10, context.canvas.width, context.canvas.height, false);
-    //console.log('extent', extent);
     if (!extent) return false;
-    /**/
     var csl = document.createElement("canvas");
     csl.setAttribute("id", extent.toString());
     csl.width = extent[1][0] - extent[0][0] + borderw;
     csl.height = extent[1][1] - extent[0][1] + borderw;
-    //csl.width = 900;
-    //csl.height = 900;
     cctx = csl.getContext('2d');
     cctx.fillStyle = 'rgba(255,255,255,1)';
     cctx.fillRect(0,0,csl.width,csl.height);
@@ -170,9 +166,6 @@ function floodcheck (x, y) {
       2, context.canvas.width, context.canvas.height,
       robj);
     cctx.putImageData(cslImg, 0, 0);
-    //csl.setAttribute('class', 'blockphrase');
-    //document.body.appendChild(csl);
-    /**/
     context.putImageData(px, 0, 0);
     return [csl, extent];
 }
