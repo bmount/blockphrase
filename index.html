@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script type="text/javascript" src="lib/polymaps-cmu.min.js"></script>
-    <script type="text/javascript" src="lib/pixymaps.min.js"></script>
-    <script type="text/javascript" src="lib/d3.v2.min.js"></script>
+    <script type="text/javascript" src="../lib/polymaps-cmu.min.js"></script>
+    <script type="text/javascript" src="../lib/pixymaps.min.js"></script>
+    <script type="text/javascript" src="../lib/d3.v2.min.js"></script>
     <link rel="stylesheet" type="text/css" href="style/postyle.css" >
     <style type="text/css">
 
@@ -16,6 +16,18 @@ body {
   height: 400px;
   overflow: hidden;
   display: none;
+}
+
+.dlcanvas {
+  /*
+  display: none;
+  */
+}
+
+#savebutton {
+  /*
+  display: none;
+  */
 }
 
 #copy {
@@ -31,6 +43,12 @@ body {
   position: absolute;
   top: 20px;
   left: 2em;
+}
+
+/* weirdness in Firefox svg sizing only partially fixed by this */
+.map {
+  height: 100%;
+  width: 100%;
 }
 
 #description {
@@ -60,12 +78,16 @@ body {
       <div id=findermap> </div>
     </div>
     <div id="copy">
-    Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.
+      Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a> |
+      <a href="http://www.armellecaron.fr/cms/index.php?page=plans_de_berlin">idea</a> |
+      <a href="https://github.com/bvmou/blockphrase">source</a>
     </div>
 
     <div id=description>
       
       <button id=renderbutton>Render</button>
+      <button disabled id=savebutton >save</button>
+      <button disabled id=restorebutton>back to map</button>
     </div>
   <div id=blockphrase></div>
 
@@ -86,7 +108,13 @@ function flood (px, w0, x0, y0, ov, nv, xf, yf, cp) {
     else {
       px[(y*w0 + x)*4] = nv;
       if (cp) { 
+        // Be a man use Cyan
         cp.data[((y-cp.yoff)*cp.w + x - cp.xoff)*4] = 0;
+        // gray:
+        //cp.data[((y-cp.yoff)*cp.w + x - cp.xoff)*4] = 126;
+        //cp.data[((y-cp.yoff)*cp.w + x - cp.xoff)*4 + 1 ] = 126;
+        //cp.data[((y-cp.yoff)*cp.w + x - cp.xoff)*4 + 2 ] = 126;
+        //cp.data[((y-cp.yoff)*cp.w + x - cp.xoff)*4 + 3 ] = 200;
       }
       if (x > maxes[0]) { maxes[0]=x }
       if (y > maxes[1]) { maxes[1]=y }
@@ -107,8 +135,11 @@ function flood (px, w0, x0, y0, ov, nv, xf, yf, cp) {
 
 var po = org.polymaps;
 
+
 var findermap = po.map()
-    .container(document.getElementById("findermap").appendChild(po.svg("svg")))
+  .container(d3.select('#findermap').append("svg")
+      .attr("height", "400px") // FF svg sizing mystery
+      .attr("width", "600px").node())
     .zoomRange([3, 16])
     .add(po.interact())
     .add(po.hash());
@@ -153,6 +184,7 @@ function floodcheck (x, y) {
     if (!extent) return false;
     var csl = document.createElement("canvas");
     csl.setAttribute("id", extent.toString());
+    csl.setAttribute("class", "blocks");
     csl.width = extent[1][0] - extent[0][0] + borderw;
     csl.height = extent[1][1] - extent[0][1] + borderw;
     cctx = csl.getContext('2d');
@@ -171,34 +203,79 @@ function floodcheck (x, y) {
 }
 
 function renderArea () {
+  //d3.selectAll(".blocks").remove();
   var blocks = d3.select('#blockphrase').node()
   var x = 200
     , y = 200
     , nxt = false
-    , dx, dy;
+    , offx = 0, offy = 0
+    , cv = canvas.node();
+  if (typeof cv.style.webkitTransform === 'string') {
+    offx = parseInt(cv.style.webkitTransform.split(',')[12]);
+    offy = parseInt(cv.style.webkitTransform.split(',')[13]);
+  }
   for (var i = -75; i <= 75; i+=15) {
     for (var j = -75; j <= 75; j+=15) {
-      x = 200 + i -
-        parseInt(canvas.node().style.webkitTransform.split(',')[12]);
-      y = 200 + j - 
-        parseInt(canvas.node().style.webkitTransform.split(',')[13]);
+      x = 200 + i - offx
+      y = 200 + j - offy
       if (context.getImageData(x, y, 1, 1).data[0] < 100) continue;
       nxt = floodcheck(parseInt(x), parseInt(y));
       blocks.appendChild(nxt[0]);
-      dx = Math.abs(nxt[0][1] - nxt[0][0]);
-      dy = Math.abs(nxt[1][1] - nxt[1][0]);
     }
   }
-  // couple of oddballs not sure why ->
+  // couple of oddballs ->
   d3.selectAll('canvas[width="3"]').remove()
 }
 }
 
-
 d3.select("#renderbutton").on('click', function () {
     var ctr = findermap.center()
     pxMap(ctr.lon, ctr.lat);
+    d3.select("#savebutton").node().disabled = false;
+    //d3.select("#restorebutton").node().disabled = false;
   })
+
+
+d3.select("#restorebutton").on('click', function () {
+    //d3.select("#savebutton").node().disabled = true;
+    //this.disabled = true;
+    //d3.selectAll(".blocks").remove();
+    })
+
+d3.select("#savebutton").on('click', function () {
+    var blockcanvases = d3.selectAll(".blocks")
+      , blockcanvas;
+    console.log(blockcanvases);
+    var widthTot = 0;
+    var heightMax = 0;
+    //blockcanvases[0].forEach(function (e, i, c) {
+    for (var i = 0; i < blockcanvases[0].length; i++) {
+      blockcanvas = blockcanvases[0][i];
+      widthTot += blockcanvas.width;
+      heightMax = (heightMax > blockcanvas.height)? heightMax: blockcanvas.height;
+    }
+    var dlcanvas = document.createElement("canvas");
+    dlcanvas.setAttribute("class", "dlcanvas");
+    dlcanvas.setAttribute("height", heightMax + 5);
+    dlcanvas.setAttribute("width", widthTot);
+    dlctx = dlcanvas.getContext('2d');
+    //dlctx.fillStyle = 'rgba(255,255,255,1)';
+    //dlctx.fillRect(0, 0, widthTot, heightMax+5);
+    //dlctx.fill();
+    var xpos = 0, imgdata, datapng;
+    for (var i = 0; i < blockcanvases[0].length; i++) {
+      blockcanvas = blockcanvases[0][i];
+      imgdata = blockcanvas.toDataURL('image/png');
+      console.log(imgdata);
+      datapng = new Image();
+      datapng.src = imgdata;
+      dlctx.drawImage(datapng, xpos, heightMax-blockcanvas.height);
+      xpos += blockcanvas.width;
+    }
+    window.location.href = dlcanvas.toDataURL('image/png');
+    document.body.appendChild(dlcanvas);
+    console.log(widthTot, heightMax);
+})
 
 
 </script>

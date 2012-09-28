@@ -5,7 +5,6 @@ var taco = require('tako')
   , app = taco()
 
 var tileset = 'toner-background'
-var tileset = 'toner-background'
 
 // getImageData has separate same origin policy,
 // proxy for pixel manipulation:
@@ -19,6 +18,6 @@ app.route('/').files(path.join(__dirname, 'index.html'));
 app.route('/lib/*').files(path.join(__dirname, 'lib'));
 app.route('/style/*').files(path.join(__dirname, 'style'));
 
-app.route('devtiles/*').files(path.join(__dirname, 'localtilecache'));
+app.route('/devtiles/*').files(path.join(__dirname, 'localtilecache'));
 
 app.httpServer.listen(8002)

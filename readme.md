@@ -14,3 +14,5 @@ remote tile providers.
 To use:
 
 `node server.js // http://localhost:8002`
+
+License: MIT
