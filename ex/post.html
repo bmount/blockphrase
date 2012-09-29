@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="utf-8">
+  <head>
+    <title>blockphrase</title>
+  <style>
+  body {
+    font-family: Helvetica sans-serif;
+    margin-left: 20%;
+    margin-right: 20%;
+    margin-top: 1em;
+  }
+  h1 {
+    /*dont squash blockphrase span*/
+    margin-right: -200%;
+  }
+  #titlebar {
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-top: 4px;
+    border-radius: 25px;
+  }
+  span a {
+    text-decoration: none;
+  }
+
+  .bimg {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 15px;
+  }
+  #main {
+    margin-top: 1em;
+    padding: 2%;
+  }
+  </style>
+  </head>
+
+  <body>
+  <div id=titlebar>
+  <h1>
+    <p>
+    visual phrases for streets:
+      <span>
+        <a href="../#16.00/37.7558/-122.4270">
+          <img width=350px 
+          id=chattanoogast src="ex/chattanooga.png" />
+        </a>
+      </span>
+    </p>
+    <p>
+    and other kinds of places:
+      <span>
+        <a href="../#16.00/37.9445/-121.9551">
+          <img width=350px
+          id=clayton src="ex/clayton.png" />
+        </a>
+      </span> 
+    </p>
+  </h1>
+  </div>
+  <div id=main>
+  <p>
+  Last week I saw a new-to-me 
+  <a href="http://www.armellecaron.fr/art/index.php?page=plans_de_berlin">project</a>
+  from a few years ago,
+  by French artist Armelle Caron (<em>cartiste? artographer?</em> 
+  We need a new word for 
+  <a href="http://www.armellecaron.fr/art/index.php?page=river-roots">
+    things like this
+  </a>.) She had broken down a number of cities into
+  the shapes created by their street geometries:
+  </p>
+  <img class=bimg width=700px src="ex/armellecaron-tamarac.png" />
+  <p>
+  Above is Tamarac, Florida, a product of 60's US car culture
+  (it spells "Car-a-Mat", the name of the original developer's chain of 
+  automatic carwashes, backwards.)
+  I thought it would be interesting to make a sort of general block
+  viewer for that kind of visual — just the shapes of places that are
+  not streets. Here's Tamarac again:
+  </p>
+  <a href="../#16.00/26.2114/-80.2825">
+    <img class=bimg width=700px src="ex/tamarac-blockphrase.png" />
+  </a>
+  <p>
+  Fun fact about that leftmost block: all 5 streets in its lower-right
+  are called Malvern Drive. Just looking at <a href="../#16.00/26.2115/-80.2824">a map</a> 
+  it's hard to get a sense of the actual level of connectivity the streets
+  enable. It's hard to tell that
+  the effective distance across this sidewalk:
+  </p>
+  <a href="https://maps.google.com/maps?q=tamarac+malvern+dr&hl=en&ll=26.2108,-80.28325&spn=0.001579,0.002712&safe=off&hnear=Malvern+Dr,+Tamarac,+Broward,+Florida+33321&gl=us&t=m&z=19&layer=c&cbll=26.2108,-80.28325&panoid=JrjQeSfa1VnpAHDn5z41jQ&cbp=12,359.44,,0,10.98">
+    <img class=bimg width=400px src="ex/malvern-drive.png">
+  </a>
+  <p>
+  is 6 blocks. Here is another town, at the same scale and with a Tamarac-like name — 
+  Tacuarembó, Uruguay, one of my favorite places on Earth:
+  </p>
+  <a href="../#16.00/-31.7151/-55.9817">
+  <img class=bimg width=700px src="ex/tacuarembo.png" />
+  </a>
+  <p>
+  There are many interesting differences between suburban
+  Florida and northern Uruguayan regional capitals — but
+  I think that diagram captures a very important one.
+  (It really is all like that.) Here's Rome:
+  </p>
+  <a href="../#16.00/41.8828/12.5126">
+  <img class=bimg width=700px src="ex/romeviaappianuova.png" />
+  </a>
+  <p>
+  Here's Vacaville, California:
+  <a href="../#16.00/38.3423/-121.9751">
+    <img class=bimg width=700px src="ex/vacaville.png" />
+  </a>
+  </p>
+  <p>
+  Here's the area just north-west of Cesar Chavez and Potrero
+  in the Mission District of San Francisco:
+  </p>
+  <a href="../#16.00/37.7527/-122.4114">
+    <img class=bimg width=700px src="ex/mission.png" />
+  </a>
+  <p>
+  Here's the freeway and arterial junction area 
+  just south-west of the same spot:
+  </p>
+  <a href="../#16.00/37.7494/-122.4035">
+    <img class=bimg width=700px src="ex/280cc.png" />
+  </a>
+  <p>
+  Cyan is optional but recommended. Underlying map imagery comes from the indomitable 
+  lions of open source web mapping at <a href="http://maps.stamen.com">Stamen Design</a>.
+  The code for this project is available <a href="https://github.com/bvmou/blockphrase">here</a>.
+</div>

@@ -26,10 +26,17 @@ body {
   */
 }
 
+#renderbutton {
+  position: absolute;
+  top: 285px;
+}
 #savebutton {
-  /*
-  display: none;
-  */
+  position: absolute;
+  top: 325px;
+}
+#restorebutton {
+  position: absolute;
+  top: 365px;
 }
 
 #copy {
@@ -54,9 +61,13 @@ body {
 }
 
 #description {
-  font-size: 30px;
-  left: 625px;
-  top: 0px;
+  font-size: 16px;
+  width: 400px;
+  left: 645px;
+  position: absolute;
+}
+#controls {
+  font-size: 20px;
   position: absolute;
 }
 
@@ -81,17 +92,31 @@ body {
     </div>
     <div id="copy">
       Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a> |
-      ideas: <a href="http://www.armellecaron.fr/cms/index.php?page=plans_de_berlin">[1]</a> 
-      <a href="http://www.edwardtufte.com/bboard/q-and-a-fetch-msg?msg_id=0001OR">[2]</a> 
-      <a href="http://commonscale.tumblr.com/post/29710181343/they-dont-make-them-like-they-used-to">[3]</a> 
-      | <a href="https://github.com/bvmou/blockphrase">source</a>
+      <a href="https://github.com/bvmou/blockphrase">source</a>
     </div>
 
     <div id=description>
-      
-      <button id=renderbutton>Render</button>
-      <button disabled download=blocklines id=savebutton >save</button>
-      <button disabled id=restorebutton>clear</button>
+      <h2>
+        one-liners
+      </h2>
+      <h3>
+        for the spaces created by street layout
+      </h3>
+      <p>
+      A couple of ideas from: <a href="http://www.armellecaron.fr/cms/index.php?page=plans_de_berlin">[1]</a> 
+      <a href="http://www.edwardtufte.com/bboard/q-and-a-fetch-msg?msg_id=0001OR">[2]</a> 
+      <a href="http://commonscale.tumblr.com/post/29710181343/they-dont-make-them-like-they-used-to">[3]</a> 
+      made me wonder if you could get some insight into urban space by looking at
+      inline, mostly one dimensional simplifications of block geometries. 
+      Feel free to use for any purpose, here's an explanation and
+      <a href="more">example use</a>.
+      </p>
+      <p>
+      Rendering is a bit cpu-hungry, tested in Firefox and WebKit
+      </p>
+      <button class=minimal-indent id=renderbutton>create diagram</button>
+      <button class=minimal-indent disabled download=blocklines id=savebutton >save</button>
+      <button class=minimal-indent disabled id=restorebutton>clear</button>
     </div>
   <div id=blockphrase></div>
 
@@ -124,6 +149,10 @@ function flood (px, w0, x0, y0, ov, nv, xf, yf, cp) {
       if (y > maxes[1]) { maxes[1]=y }
       if (x < mins[0])  { mins[0]=x }
       if (y < mins[1])  { mins[1]=y }
+      // check if overflowing into a 
+      // white-edge area such that there is no
+      // closed geometry for a block -- infrequent
+      // so far
       //if (x <= 0) return false;
       //if (y <= 0) return false;
       //if (x >= xf) return false;
@@ -207,17 +236,17 @@ function floodcheck (x, y) {
 }
 
 function renderArea () {
-  //d3.selectAll(".blocks").remove();
   var blocks = d3.select('#blockphrase').node()
   var x = 200
     , y = 200
     , nxt = false
     , offx = 0, offy = 0, rv = []
     , cv = canvas.node();
+  // aliased in ff release (not nightly)
   if (typeof cv.style.webkitTransform === 'string') {
     offx = parseInt(cv.style.webkitTransform.split(',')[12]);
     offy = parseInt(cv.style.webkitTransform.split(',')[13]);
-  }
+  } 
   for (var i = -75; i <= 75; i+=15) {
     for (var j = -75; j <= 75; j+=15) {
       x = 200 + i - offx
