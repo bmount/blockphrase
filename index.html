@@ -211,7 +211,7 @@ var image = pixymaps.image()
 function floodcheck (x, y) {
     var borderw = 3; // min space between blocks when rendered
     var oc = 255; //context.getImageData(x, y, 1, 1); 
-    var px = context.getImageData(0,0, context.canvas.height, context.canvas.width);
+    var px = context.getImageData(0,0, context.canvas.width, context.canvas.height);
     var extent = flood(px.data, px.width, x, y, oc, 
         10, context.canvas.width, context.canvas.height, false);
     if (!extent) return false;
