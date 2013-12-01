@@ -1,4 +1,4 @@
-![sparkline for streets idea](http://pics.aguacat.es/pics/sparkstreets/sparkstr01.png)
+![sparkline for streets idea](http://pics.cityrewrite.com/pics/sparkstreets/sparkstr01.png)
 
 simple thing combining a sort of sparkline with some visual concepts from 
 Armelle Caron's beautiful [tout bien rangé](http://www.armellecaron.fr/art/index.php?page=plans_de_berlin)
